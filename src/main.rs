@@ -4,6 +4,7 @@ use bevy::{
 };
 
 mod player;
+mod timer;
 
 fn main() {
     App::new()
@@ -24,6 +25,7 @@ fn main() {
                 .set(ImagePlugin::default_nearest()),
         )
         .add_plugin(player::PlayerPlugin)
+        .add_plugin(timer::TimerPlugin)
         .add_startup_system(spawn_camera)
         .run();
 }

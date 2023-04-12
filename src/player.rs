@@ -1,13 +1,21 @@
+use std::collections::VecDeque;
+
 use bevy::{prelude::*, window::PrimaryWindow};
+
+use crate::timer::TickState;
+
+pub const MAX_INPUT_LENGHT: usize = 4;
 
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(spawn_player)
+            .add_startup_system(inicialize_player_input)
             .add_system(player_movement)
-            .add_system(gravity)
-            .add_system(confine_player_movement);
+            .add_system(confine_player_movement)
+            .add_system(receive_input.in_set(OnUpdate(TickState::Input)))
+            .add_system(execute_input.in_set(OnUpdate(TickState::Execution)));
     }
 }
 
@@ -32,7 +40,6 @@ fn spawn_player(mut commands: Commands) {
 }
 
 const PLAYER_SPEED: f32 = 500.0;
-const G: f32 = 100.0;
 
 fn player_movement(
     keyboard_input: Res<Input<KeyCode>>,
@@ -63,12 +70,6 @@ fn player_movement(
     }
 }
 
-fn gravity(mut player_query: Query<&mut Transform, With<Player>>, time: Res<Time>) {
-    if let Ok(mut transform) = player_query.get_single_mut() {
-        transform.translation.y -= G * time.delta_seconds();
-    }
-}
-
 fn confine_player_movement(
     mut player_query: Query<&mut Transform, With<Player>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
@@ -88,4 +89,27 @@ fn confine_player_movement(
             transform.translation.y = window.height() as f32 - PLAYER_SIZE / 2.0;
         }
     }
+}
+
+#[derive(Resource, Debug)]
+pub struct PlayerInput(VecDeque<KeyCode>);
+
+fn inicialize_player_input(mut commands: Commands) {
+    commands.insert_resource(PlayerInput(VecDeque::new()));
+}
+
+fn receive_input(input: Res<Input<KeyCode>>, mut player_input: ResMut<PlayerInput>) {
+    if player_input.0.len() > MAX_INPUT_LENGHT {
+        player_input.0.pop_front();
+    }
+
+    player_input.0.push_back(match input.get_just_pressed().next() {
+        Some(&key) => key,
+        None => return,
+    });
+}
+
+fn execute_input(mut tick_state: ResMut<NextState<TickState>>) {
+    println!("Execute input");
+    tick_state.set(TickState::Input);
 }
