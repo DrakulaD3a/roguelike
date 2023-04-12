@@ -20,7 +20,7 @@ impl Plugin for PlayerPlugin {
 #[derive(Component)]
 pub struct Player;
 
-const PLAYER_SIZE: f32 = 50.0;
+pub const PLAYER_SIZE: f32 = 50.0;
 
 fn spawn_player(mut commands: Commands) {
     commands
@@ -49,10 +49,12 @@ fn receive_input(input: Res<Input<KeyCode>>, mut player_input: ResMut<PlayerInpu
         player_input.0.pop_front();
     }
 
-    player_input.0.push_back(match input.get_just_pressed().next() {
-        Some(&key) => key,
-        None => return,
-    });
+    player_input
+        .0
+        .push_back(match input.get_just_pressed().next() {
+            Some(&key) => key,
+            None => return,
+        });
 }
 
 fn execute_input(mut tick_state: ResMut<NextState<TickState>>) {
