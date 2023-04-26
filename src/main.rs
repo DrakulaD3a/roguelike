@@ -4,6 +4,7 @@ use bevy::{
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
+mod ascii;
 mod map;
 mod player;
 mod timer;
@@ -27,6 +28,7 @@ fn main() {
                 .set(ImagePlugin::default_nearest()),
         )
         .add_plugin(WorldInspectorPlugin::new())
+        .add_plugin(ascii::AsciiPlugin)
         .add_plugin(player::PlayerPlugin)
         .add_plugin(timer::TimerPlugin)
         .add_plugin(map::MapPlugin)
